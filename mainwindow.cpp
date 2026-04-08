@@ -33,9 +33,6 @@ MainWindow::MainWindow(QWidget *parent)
     receiveTextEdit->setPlaceholderText("等待接收组播消息...");
     receiveTextEdit->setFont(QFont("Consolas", 9));
 
-    receiveLayout->addWidget(receiveLabel);
-    receiveLayout->addWidget(receiveTextEdit);
-
     // ========== 接收区域配置面板 ==========
     auto *receiveConfigLayout = new QHBoxLayout;
 
@@ -63,6 +60,8 @@ MainWindow::MainWindow(QWidget *parent)
     receiveConfigLayout->addWidget(btnBindReceive);
     receiveConfigLayout->addStretch();
 
+    receiveLayout->addWidget(receiveLabel);
+    receiveLayout->addWidget(receiveTextEdit);
     receiveLayout->addLayout(receiveConfigLayout);
 
     // ========== 发送区域（下半部分）==========
@@ -78,14 +77,54 @@ MainWindow::MainWindow(QWidget *parent)
     sendTextEdit->setFont(QFont("Consolas", 9));
     sendTextEdit->setMaximumHeight(120);
 
+    // ========== 新增：自动发送间隔输入框 ==========
+    auto *intervalLayout = new QHBoxLayout;
+
+    intervalLabel = new QLabel("自动发送间隔 (ms):", sendGroup);
+    intervalLabel->setFont(QFont("Arial", 10, QFont::Bold));
+
+    intervalLineEdit = new QLineEdit(sendGroup);
+    intervalLineEdit->setText("1000");                    // 默认 1000ms
+    intervalLineEdit->setValidator(new QIntValidator(10, 600000, this));  // 限制 10ms ~ 10分钟
+    intervalLineEdit->setMaximumWidth(120);
+    intervalLineEdit->setFont(QFont("Consolas", 10));
+
+    intervalLayout->addWidget(intervalLabel);
+    intervalLayout->addWidget(intervalLineEdit);
+    intervalLayout->addStretch();   // 让输入框靠左对齐
+
+    // ========== 发送区域配置面板 ==========
+    auto *sendConfigLayout = new QHBoxLayout;
+
+    sendPortLabel = new QLabel("端口:", sendGroup);
+    sendPortEdit = new QLineEdit("8888", sendGroup);
+    sendPortEdit->setMaximumWidth(80);
+
+    sendGroupLabel = new QLabel("组播地址:", sendGroup);
+    sendGroupEdit = new QLineEdit("226.0.0.80", sendGroup);
+    sendGroupEdit->setMaximumWidth(120);
+
+    sendIpLabel = new QLabel("网口IP:", sendGroup);
+    sendIpEdit = new QLineEdit("192.168.8.100", sendGroup);
+    sendIpEdit->setMaximumWidth(140);
+
+    btnBindSend = new QPushButton("绑定发送", sendGroup);
+    btnBindSend->setStyleSheet("background-color: #2196F3; color: white;");
+
+    sendConfigLayout->addWidget(sendPortLabel);
+    sendConfigLayout->addWidget(sendPortEdit);
+    sendConfigLayout->addWidget(sendGroupLabel);
+    sendConfigLayout->addWidget(sendGroupEdit);
+    sendConfigLayout->addWidget(sendIpLabel);
+    sendConfigLayout->addWidget(sendIpEdit);
+    sendConfigLayout->addWidget(btnBindSend);
+    sendConfigLayout->addStretch();
+
+    // ========== 按钮布局 ==========
     auto *buttonLayout = new QHBoxLayout;
     btnSend = new QPushButton("发送一次", sendGroup);
     btnStart = new QPushButton("开始自动发送", sendGroup);
     btnStop = new QPushButton("停止自动发送", sendGroup);
-
-    // btnSend->setStyleSheet("background-color: #4CAF50; color: white; padding: 8px;");
-    // btnStart->setStyleSheet("background-color: #2196F3; color: white; padding: 8px;");
-    // btnStop->setStyleSheet("background-color: #f44336; color: white; padding: 8px;");
 
     // ========== 更明显的按钮按压效果 ==========
     QString baseStyle = R"(
@@ -135,53 +174,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     sendLayout->addWidget(sendLabel);
     sendLayout->addWidget(sendTextEdit);
-
-    // ========== 新增：自动发送间隔输入框 ==========
-    auto *intervalLayout = new QHBoxLayout;
-
-    intervalLabel = new QLabel("自动发送间隔 (ms):", sendGroup);
-    intervalLabel->setFont(QFont("Arial", 10, QFont::Bold));
-
-    intervalLineEdit = new QLineEdit(sendGroup);
-    intervalLineEdit->setText("1000");                    // 默认 1000ms
-    intervalLineEdit->setValidator(new QIntValidator(10, 600000, this));  // 限制 10ms ~ 10分钟
-    intervalLineEdit->setMaximumWidth(120);
-    intervalLineEdit->setFont(QFont("Consolas", 10));
-
-    intervalLayout->addWidget(intervalLabel);
-    intervalLayout->addWidget(intervalLineEdit);
-    intervalLayout->addStretch();   // 让输入框靠左对齐
-
-    // ========== 发送区域配置面板 ==========
-    auto *sendConfigLayout = new QHBoxLayout;
-
-    sendPortLabel = new QLabel("端口:", sendGroup);
-    sendPortEdit = new QLineEdit("8888", sendGroup);
-    sendPortEdit->setMaximumWidth(80);
-
-    sendGroupLabel = new QLabel("组播地址:", sendGroup);
-    sendGroupEdit = new QLineEdit("226.0.0.80", sendGroup);
-    sendGroupEdit->setMaximumWidth(120);
-
-    sendIpLabel = new QLabel("网口IP:", sendGroup);
-    sendIpEdit = new QLineEdit("192.168.8.100", sendGroup);
-    sendIpEdit->setMaximumWidth(140);
-
-    btnBindSend = new QPushButton("绑定发送", sendGroup);
-    btnBindSend->setStyleSheet("background-color: #2196F3; color: white;");
-
-    sendConfigLayout->addWidget(sendPortLabel);
-    sendConfigLayout->addWidget(sendPortEdit);
-    sendConfigLayout->addWidget(sendGroupLabel);
-    sendConfigLayout->addWidget(sendGroupEdit);
-    sendConfigLayout->addWidget(sendIpLabel);
-    sendConfigLayout->addWidget(sendIpEdit);
-    sendConfigLayout->addWidget(btnBindSend);
-    sendConfigLayout->addStretch();
-
-    sendLayout->addLayout(sendConfigLayout);
-
     sendLayout->addLayout(intervalLayout);
+    sendLayout->addLayout(sendConfigLayout);
     sendLayout->addLayout(buttonLayout);
 
     // 将两个区域添加到分割器
@@ -193,9 +187,6 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->addWidget(splitter);
     setCentralWidget(central);
 
-    // 创建组播组件
-    // receiver = new MulticastReceiver(9002, "226.0.0.90", "192.168.8.101", this);
-    // sender = new MulticastSender(7003, "226.0.0.90", "192.168.8.100", this);
     // ========== 使用界面输入框的值初始化 receiver 和 sender ==========
     quint16 recvPort = receivePortEdit->text().toUShort();
     QString recvGroupInit = receiveGroupEdit->text().trimmed();
@@ -320,10 +311,10 @@ void MainWindow::onStopAutoSend()
     receiveTextEdit->append(QString("<font color='red'>[系统] 已停止自动发送</font>"));
 }
 
-// 【新增辅助函数】将十六进制字符串转换为 QByteArray
-// 支持格式："48 65 6C 6C 6F" 或 "48656C6C6F" 或 "48-65-6C"
 QByteArray MainWindow::hexStringToByteArray(const QString &hexString)
 {
+    // 【新增辅助函数】将十六进制字符串转换为 QByteArray
+    // 支持格式："48 65 6C 6C 6F" 或 "48656C6C6F" 或 "48-65-6C"
     QString cleanHex = hexString;
     // 移除所有空格、横线、冒号等分隔符
     cleanHex.remove(QRegularExpression("[\\s:-]"));
